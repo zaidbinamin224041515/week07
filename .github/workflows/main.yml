@@ -1,0 +1,126 @@
+# week07/.github/workflows/backend_ci.yml
+
+name: Backend CI - Code Quality & Tests
+
+# Trigger the workflow on pushes to the 'main' branch
+# You can also add 'pull_request:' to run on PRs
+on:
+  # Manual trigger
+  workflow_dispatch:
+
+  # Automatically on pushes to main branch
+  push:
+    branches:
+      - main
+    paths: # Only trigger if changes are in backend directories
+      - 'backend/**'
+
+jobs:
+  # Define a matrix job to run checks for each backend service concurrently
+  test_and_lint_backends:
+    runs-on: ubuntu-latest # Use a GitHub-hosted runner
+
+    services:
+      # Product DB container
+      product_db:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: products
+        # Make pg_isready available so the service is healthy before tests run
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      # Order DB
+      order_db:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orders
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # Customer DB
+      customer_db:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: customers
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # Define a strategy to run the job for each service
+    strategy:
+      matrix:
+        # Define the backend services to iterate over
+        service:
+          - name: product_service
+            path: backend/product_service
+          - name: order_service
+            path: backend/order_service
+          - name: customer_service
+            path: backend/customer_service
+          
+
+    name: CI for ${{ matrix.service.name }}
+
+    steps:
+      # 1. Checkout the repository code to the runner
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Action to check out your repository code
+
+      # 2. Set up Python environment
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5 # Action to set up Python environment
+        with:
+          python-version: '3.10'
+
+      # 3. Navigate to the service directory
+      - name: Navigate to service directory
+        # Change directory to the specific microservice folder for installing dependencies and running tests
+        run: cd ${{ matrix.service.path }}
+
+      # 4. Install dependencies and run code quality checks
+      - name: Install dependencies
+        run: | # Use a multi-line script to install pip dependencies
+          pip install --upgrade pip
+          pip install -r ${{ matrix.service.path }}/requirements.txt # Install dependencies for the current service
+          pip install isort flake8 pytest httpx # Install CI tools
+
+      # 5. Verify import ordering with isort
+      - name: Run isort (Import Sort)
+        # Check and enforce consistent import ordering
+        # The '--check-only' flag ensures it doesn't modify files, but fails if changes are needed.
+        run: |
+          cd ${{ matrix.service.path }}
+          isort --check-only --profile black .
+        # The '|| true' allows the step to succeed even if isort finds issues, just for demonstration
+        # In a real CI, you would remove '|| true' to make the build fail on formatting issues.
+        # This is good for early adoption, but later, make it a strict failure.
+        continue-on-error: true # Set to false in production to enforce formatting
+
+      # 6. Lint with flake8
+      - name: Run flake8 (PEP 8 style and linting)
+        # Run flake8 to check for PEP 8 compliance and common errors
+        run: |
+          cd ${{ matrix.service.path }}
+          flake8 .
+        continue-on-error: true # Set to false in production to enforce linting
