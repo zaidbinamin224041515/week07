@@ -1,4 +1,4 @@
-# week03/example-2/backend/order_service/Dockerfile
+# week07/backend/order_service/Dockerfile
 
 # Use the official Python image as a base for our FastAPI application
 FROM python:3.10-slim-buster
@@ -22,10 +22,10 @@ COPY app /code/app
 
 # Expose the port that the FastAPI application will run on
 # Default for Uvicorn is 8000
-EXPOSE 8002
+EXPOSE 8000
 
 # Command to run the application using Uvicorn
 # --host 0.0.0.0 makes the server accessible from outside the container
-# --port 8001 specifies the port
+# --port 8000 specifies the port
 # The DB_HOST environment variable will be set via Docker Compose
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

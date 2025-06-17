@@ -1,12 +1,5 @@
 # week07/backend/customer_service/app/main.py
 
-"""
-FastAPI Customer Service with CRUD operations and password hashing.
-
-This service manages customer data, including creation, retrieval, updates, and deletion.
-It's designed to be a dedicated microservice for all customer-related functionalities.
-"""
-
 import logging
 import os
 import sys

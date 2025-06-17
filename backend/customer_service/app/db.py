@@ -1,12 +1,4 @@
-# week03/example-3/backend/customer_service/app/db.py
-
-"""
-Database connection setup and session management for the Order Service.
-
-This module configures the SQLAlchemy engine and session factory for connecting
-to a PostgreSQL database. It also provides a FastAPI dependency function
-(`get_db`) to manage database sessions effectively for API endpoints.
-"""
+# week07/backend/customer_service/app/db.py
 
 import os
 
