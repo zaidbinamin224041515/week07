@@ -9,9 +9,11 @@ quantity, customer details, and essential timestamps for tracking.
 Each class defined here maps directly to a table in the PostgreSQL database.
 """
 
-from sqlalchemy import Column, Integer, String, Text, Numeric, DateTime, ForeignKey
+from sqlalchemy import (Column, DateTime, ForeignKey, Integer, Numeric, String,
+                        Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from .db import Base
 
 

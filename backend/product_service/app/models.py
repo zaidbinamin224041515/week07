@@ -6,9 +6,11 @@ These classes define the structure of tables in the database.
 Updated to include an 'image_url' for product photos.
 """
 
-from sqlalchemy import Column, Integer, String, Text, Numeric, DateTime
+from sqlalchemy import Column, DateTime, Integer, Numeric, String, Text
 from sqlalchemy.sql import func
+
 from .db import Base
+
 
 class Product(Base):
     # Name of the database table

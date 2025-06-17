@@ -10,8 +10,10 @@ clear API contracts for the Order microservice.
 """
 
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
 
 # Base schema for a Customer (common fields)
 class CustomerBase(BaseModel):

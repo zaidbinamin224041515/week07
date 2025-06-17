@@ -85,7 +85,7 @@ jobs:
         run: | # Use a multi-line script to install pip dependencies
           pip install --upgrade pip
           # Loop through each backend service folder under week07
-          for req in python/week07/backend/*/requirements.txt; do
+          for req in /backend/*/requirements.txt; do
             echo "Installing $req"
             pip install -r "$req"
           done
@@ -96,9 +96,9 @@ jobs:
       - name: Run isort (Import Sort)
         # Check and enforce consistent import ordering
         # The '--check-only' flag ensures it doesn't modify files, but fails if changes are needed.
-        run: isort --check-only python/week07/backend
+        run: isort --check-only /backend
 
       # 5. Lint with flake8
       - name: Run flake8 (PEP 8 style and linting)
         # Run flake8 to check for PEP 8 compliance and common errors
-        run: flake8 python/week07/backend
+        run: flake8 /backend

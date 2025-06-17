@@ -1,8 +1,10 @@
 # week03/example-3/backend/customer_service/app/models.py
 
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.sql import func # For auto-populating timestamps
+from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy.sql import func  # For auto-populating timestamps
+
 from .db import Base
+
 
 class Customer(Base):
     """

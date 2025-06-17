@@ -7,33 +7,32 @@ and stock management. Now includes support for photo uploads to Azure Blob Stora
 with Shared Access Signatures (SAS) for secure access, and a new endpoint for stock deduction.
 """
 
-import sys
-import logging
-import time
-import os
-import json
-from typing import List, Optional
-from decimal import Decimal
-from urllib.parse import urlparse
 import asyncio
-
-from fastapi import (
-    FastAPI, Depends, HTTPException, Query, File, UploadFile, Form, status, Response
-)
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import OperationalError
-
-# Azure Storage Imports
-from azure.storage.blob import BlobServiceClient, BlobSasPermissions, generate_blob_sas, ContentSettings
+import json
+import logging
+import os
+import sys
+import time
 from datetime import datetime, timedelta
-from dotenv import load_dotenv # For loading Azure credentials from .env file
+from decimal import Decimal
+from typing import List, Optional
+from urllib.parse import urlparse
+
+import aio_pika
+# Azure Storage Imports
+from azure.storage.blob import (BlobSasPermissions, BlobServiceClient,
+                                ContentSettings, generate_blob_sas)
+from dotenv import load_dotenv  # For loading Azure credentials from .env file
+from fastapi import (Depends, FastAPI, File, Form, HTTPException, Query,
+                     Response, UploadFile, status)
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session
 
 from .db import Base, engine, get_db
 from .models import Product
-from .schemas import ProductCreate, ProductUpdate, ProductResponse, StockDeductRequest
-
-import aio_pika
+from .schemas import (ProductCreate, ProductResponse, ProductUpdate,
+                      StockDeductRequest)
 
 # --- Standard Logging Configuration ---
 logging.basicConfig(

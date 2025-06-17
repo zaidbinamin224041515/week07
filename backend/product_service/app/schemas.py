@@ -1,8 +1,10 @@
 # week03/example-3/backend/product_service/app/schemas.py
 
+from datetime import datetime  # Import datetime for ProductResponse
 from typing import Optional
-from datetime import datetime # Import datetime for ProductResponse
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 # Base schema for Product
 class ProductBase(BaseModel):

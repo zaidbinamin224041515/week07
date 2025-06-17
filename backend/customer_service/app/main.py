@@ -7,22 +7,20 @@ This service manages customer data, including creation, retrieval, updates, and 
 It's designed to be a dedicated microservice for all customer-related functionalities.
 """
 
-import sys
 import logging
-import time
-from typing import Optional, List
-
 import os
+import sys
+import time
+from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Depends, status, Response, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import OperationalError, IntegrityError
 
-from .db import engine, Base, get_db
+from .db import Base, engine, get_db
 from .models import Customer
-from .schemas import CustomerCreate, CustomerUpdate, CustomerResponse
-
+from .schemas import CustomerCreate, CustomerResponse, CustomerUpdate
 
 # --- Standard Logging Configuration ---
 logging.basicConfig(

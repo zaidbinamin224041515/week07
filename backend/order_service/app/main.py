@@ -7,27 +7,26 @@ Now fully integrated with RabbitMQ for asynchronous stock deduction.
 Also integrates with the new Customer Service.
 """
 
-import sys
-import logging
-import time
-import os
-import json
 import asyncio
-from typing import Optional, List
+import json
+import logging
+import os
+import sys
+import time
 from decimal import Decimal
+from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Depends, status, Response, Query
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import OperationalError
-
-import httpx
 import aio_pika
+import httpx
+from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session, joinedload
 
-from .db import engine, Base, get_db, SessionLocal
+from .db import Base, SessionLocal, engine, get_db
 from .models import Order, OrderItem
-from .schemas import OrderCreate, OrderUpdate, OrderResponse, OrderItemResponse, OrderStatusUpdate
-
+from .schemas import (OrderCreate, OrderItemResponse, OrderResponse,
+                      OrderStatusUpdate, OrderUpdate)
 
 # --- Standard Logging Configuration ---
 logging.basicConfig(
