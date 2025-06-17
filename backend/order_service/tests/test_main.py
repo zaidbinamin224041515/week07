@@ -17,7 +17,6 @@ from unittest.mock import AsyncMock, patch  # For mocking httpx.AsyncClient
 
 import pytest
 from app.db import SessionLocal, engine, get_db
-
 # Import app, engine, get_db, SessionLocal, and Base from your main application's modules.
 from app.main import app
 from app.models import Base, Order, OrderItem
