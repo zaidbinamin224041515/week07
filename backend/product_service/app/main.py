@@ -19,33 +19,20 @@ from typing import List, Optional
 from urllib.parse import urlparse
 
 import aio_pika
-
 # Azure Storage Imports
-from azure.storage.blob import (
-    BlobSasPermissions,
-    BlobServiceClient,
-    ContentSettings,
-    generate_blob_sas,
-)
+from azure.storage.blob import (BlobSasPermissions, BlobServiceClient,
+                                ContentSettings, generate_blob_sas)
 from dotenv import load_dotenv  # For loading Azure credentials from .env file
-from fastapi import (
-    Depends,
-    FastAPI,
-    File,
-    Form,
-    HTTPException,
-    Query,
-    Response,
-    UploadFile,
-    status,
-)
+from fastapi import (Depends, FastAPI, File, Form, HTTPException, Query,
+                     Response, UploadFile, status)
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from .db import Base, engine, get_db
 from .models import Product
-from .schemas import ProductCreate, ProductResponse, ProductUpdate, StockDeductRequest
+from .schemas import (ProductCreate, ProductResponse, ProductUpdate,
+                      StockDeductRequest)
 
 # --- Standard Logging Configuration ---
 logging.basicConfig(
