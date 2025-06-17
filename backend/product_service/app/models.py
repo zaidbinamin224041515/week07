@@ -32,7 +32,7 @@ class Product(Base):
     stock_quantity = Column(Integer, nullable=False, default=0)
 
     # URL for the product image, stored in Azure Blob Storage. Optional.
-    image_url = Column(String(2048), nullable=True) # URL can be long
+    image_url = Column(String(2048), nullable=True)  # URL can be long
 
     # Timestamps for creation and last update.
     # 'created_at' defaults to current timestamp on creation.
@@ -43,4 +43,3 @@ class Product(Base):
     def __repr__(self):
         # A helpful representation when debugging
         return f"<Product(id={self.product_id}, name='{self.name}', stock={self.stock_quantity}, image_url='{self.image_url[:30] if self.image_url else 'None'}...')>"
-

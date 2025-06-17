@@ -12,11 +12,17 @@ class ProductBase(BaseModel):
     description: Optional[str] = Field(None, max_length=2000)
     price: float = Field(..., gt=0)
     stock_quantity: int = Field(..., ge=0)
-    image_url: Optional[str] = Field(None, max_length=2048, description="URL of the product image (e.g., from Azure Blob Storage).")
+    image_url: Optional[str] = Field(
+        None,
+        max_length=2048,
+        description="URL of the product image (e.g., from Azure Blob Storage).",
+    )
+
 
 # Schema for creating a Product (all fields required for creation, except optional ones)
 class ProductCreate(ProductBase):
     pass
+
 
 # Schema for updating a Product (all fields optional for partial update)
 class ProductUpdate(ProductBase):
@@ -25,13 +31,14 @@ class ProductUpdate(ProductBase):
     stock_quantity: Optional[int] = Field(None, ge=0)
     image_url: Optional[str] = Field(None, max_length=2048)
 
+
 # Schema for reading/responding with a Product (includes product_id)
 class ProductResponse(ProductBase):
     product_id: int
-    created_at: datetime # Datetime type for Pydantic to serialize
-    updated_at: Optional[datetime] = None # Datetime type for Pydantic to serialize
+    created_at: datetime  # Datetime type for Pydantic to serialize
+    updated_at: Optional[datetime] = None  # Datetime type for Pydantic to serialize
 
-    model_config = ConfigDict(from_attributes=True) # Enable ORM mode for Pydantic V2
+    model_config = ConfigDict(from_attributes=True)  # Enable ORM mode for Pydantic V2
 
 
 # Schema for stock deduction request
@@ -39,4 +46,7 @@ class StockDeductRequest(BaseModel):
     """
     Schema for requesting a stock deduction.
     """
-    quantity_to_deduct: int = Field(..., gt=0, description="Quantity of product to deduct from stock.")
+
+    quantity_to_deduct: int = Field(
+        ..., gt=0, description="Quantity of product to deduct from stock."
+    )

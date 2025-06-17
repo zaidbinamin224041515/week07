@@ -27,7 +27,9 @@ POSTGRES_DB = os.getenv("POSTGRES_DB", "products")
 # - 'host.docker.internal' when running the backend in Docker and connecting
 #   to a PostgreSQL server running directly on the Docker host machine.
 # - A specific hostname/IP for a remote database.
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")  # default for local; set to Azure for prod
+POSTGRES_HOST = os.getenv(
+    "POSTGRES_HOST", "localhost"
+)  # default for local; set to Azure for prod
 POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 
 # Compose the SQLAlchemy database URL, split for linting
@@ -44,6 +46,7 @@ engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
 
 def get_db():
     """
