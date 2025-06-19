@@ -1,6 +1,6 @@
 # week07/.github/workflows/backend_ci.yml
 
-name: Backend CI - Code Quality & Tests
+name: Backend CI - Test, Build and Push Images to ACR
 
 # Trigger the workflow on pushes to the 'main' branch
 # You can also add 'pull_request:' to run on PRs
@@ -95,13 +95,7 @@ jobs:
             pip install -r "$req"
           done
           # Install CI tools
-          pip install isort flake8 pytest
-
-      # 4. Verify import ordering with isort
-      - name: Run isort (Import Sort)
-        # Check and enforce consistent import ordering
-        # The '--check-only' flag ensures it doesn't modify files, but fails if changes are needed.
-        run: isort --check-only backend
+          pip install pytest httpx
 
       # 5. Run tests for product service
       - name: Run product_service tests

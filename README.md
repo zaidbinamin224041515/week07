@@ -1,123 +1,76 @@
-# Week 03 - Example 3: E-commerce Microservices with Asynchronous Communication
+# Week 07 Example 01: Continuous Integration (CI) Pipeline for Backend Microservices
 
-This example demonstrates a more advanced microservices architecture for an e-commerce application, building upon previous examples. It introduces a new dedicated Customer Microservice and implements asynchronous, event-driven communication between the Order and Product services using RabbitMQ.
+## Continuous Integration Explained
 
----
+Continuous Integration (CI) is a development practice where developers frequently merge their code changes into a central repository. Each merge triggers an automated build and test process. The primary goals of CI are to:
 
-## 🚀 Architecture Overview
+- **Detect integration issues early:** Catch conflicts and bugs quickly, reducing the effort required to fix them.
+- **Improve code quality:** Enforce coding standards and run automated tests on every change.
+- **Produce releasable artifacts:** Generate deployable software versions (e.g., Docker images) after successful validation.
 
-This project consists of five main components orchestrated using Docker Compose:
+### 1. Fork the Repository
 
-1.  **Product Microservice (FastAPI/Python)**:
-    * Manages product data (name, description, price, stock).
-    * Handles image uploads to Azure Blob Storage.
-    * **New**: Consumes `order.placed` events from RabbitMQ to asynchronously deduct product stock.
-    * **New**: Publishes `product.stock.deducted` or `product.stock.deduction.failed` events back to RabbitMQ.
-    * Uses a dedicated PostgreSQL database (`product_db`).
-2.  **Order Microservice (FastAPI/Python)**:
-    * Manages customer orders and their items.
-    * **New**: Synchronously validates `customer_id` with the Customer Microservice during order creation.
-    * **New**: Publishes `order.placed` events to RabbitMQ after an order is initially saved with a `pending` status.
-    * **New**: Consumes `product.stock.deducted` or `product.stock.deduction.failed` events from RabbitMQ to update the order status to `confirmed` or `failed` respectively.
-    * Uses a dedicated PostgreSQL database (`order_db`).
-3.  **Customer Microservice (FastAPI/Python)**:
-    * **New Service**: Manages all customer profiles and data (email, name, address, basic password storage).
-    * Provides CRUD (Create, Read, Update, Delete) endpoints for customer management.
-    * Uses a dedicated PostgreSQL database (`customer_db`).
-4.  **RabbitMQ Message Broker**:
-    * **New Component**: Facilitates asynchronous communication between services.
-    * Decouples the Order and Product services, making the order placement flow more resilient and responsive.
-5.  **Frontend (Nginx/HTML/CSS/JavaScript)**:
-    * A simple web interface for interacting with all three backend microservices.
-    * Allows adding/viewing products, adding/viewing customers, managing a shopping cart, and placing orders.
-    * **New**: Reflects asynchronous order status updates (`pending`, `confirmed`, `failed`).
+To begin, fork this repository to your own GitHub account. This will create a copy of the project under your personal namespace, allowing you to make changes and set up GitHub Actions without affecting the original repository.
 
----
+1.  Go to the original repository's page on GitHub.
+2.  Click the "Fork" button in the top right corner.
 
-## ✨ Key Features
-
-* **Microservices Architecture**: Clearly separated Product, Order, and Customer domains.
-* **Asynchronous Communication**: Implements event-driven patterns using **RabbitMQ** for reliable stock deduction.
-* **Customer Management**: Dedicated service for handling customer profiles.
-* **Distributed Transactions (Basic Saga)**: Order status updates (`pending` -> `confirmed`/`failed`) are driven by events from the Product Service, demonstrating eventual consistency.
-* **Persistent Data**: Each microservice uses its own PostgreSQL database with Docker volumes for data persistence.
-* **Image Uploads**: Product images are stored securely in Azure Blob Storage.
-* **Comprehensive CRUD**: Full Create, Read, Update, Delete functionality for Products, Orders, and Customers.
-* **Responsive Frontend**: Simple web UI to interact with all services.
-
----
-
-## ⚙️ Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-* **Docker Desktop**: Includes Docker Engine and Docker Compose.
-    * [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-* **Azure Storage Account**: Required for product image uploads.
-    * You'll need your **Storage Account Name** and **Storage Account Key**.
-    * Create a **Blob Container** within your storage account; `product-images-e3` is recommended, but you can use any name and configure it in `.env`.
-
----
-
-## 🚀 Getting Started
-
-Follow these steps to set up and run the entire application stack using Docker Compose.
-
-### 1. Clone the Repository (if you haven't already)
-
-Navigate to your project root where the `week03` folder is located:
+Once forked, clone _your forked repository_ to your local machine:
 
 ```bash
-git clone <your-repository-url>
-cd <your-repository-name>/week03/example-3
+git clone [https://github.com/your-username/your-forked-repository.git](https://github.com/your-username/your-forked-repository.git) # Replace with your actual forked repo URL
+cd your-forked-repository/week07/example-01 # Adjust path as needed for Week 07 Example 01
 ```
 
-### 2. Build and Start the Services
+### 2. Create GitHub Repository Secrets
 
-Navigate to the week03/example-3 directory in your terminal:
-```bash
-cd your_project_folder/week03/example-3
-```
+Your GitHub Actions workflow will need credentials to interact with Azure and ACR. Create these as secrets in your GitHub repository:
 
-Now, run the Docker Compose command to build the images and start all containers:
+1.  Go to your GitHub repository.
+2.  Navigate to **Settings** > **Secrets and variables** > **Actions**.
+3.  Click **New repository secret**.
 
-```bash
-docker compose up --build -d
-```
+- **`AZURE_CREDENTIALS`**: This JSON object allows GitHub Actions to authenticate with Azure.
+  To create the necessary Azure Service Principal, follow the official Microsoft Learn documentation:
+  [How to create a service principal for an Azure application using the portal](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal#register-an-application-with-microsoft-entra-id-and-create-a-service-principal)
 
-- `--build`: Ensures Docker images are rebuilt, picking up the latest code changes.
-- `-d`: Runs the containers in detached mode (in the background).
-This process might take a few minutes as Docker downloads images and builds your services.
+  Once you have created the Service Principal, you will find the required values for `clientId`, `clientSecret`, `subscriptionId`, and `tenantId`. Use these to construct the JSON secret:
 
-### 4. Verify Services are Running
+  ```json
+  {
+    "clientId": "<Client ID>",
+    "clientSecret": "<Client Secret>",
+    "subscriptionId": "<Subscription ID>",
+    "tenantId": "<Tenant ID>"
+  }
+  ```
 
-You can check the status of all running containers:
+  Paste this complete JSON object as the value for the `AZURE_CREDENTIALS` secret.
 
-```bash
-docker compose ps
-```
+  - **`ACR_LOGIN_SERVER`**: The full login server name of your Azure Container Registry (e.g., `myacr.azurecr.io`).
 
-You should see all eight services (`rabbitmq`, `product_db`, `order_db`, `customer_db`, `product_service`, `order_service`, `customer_service`, `frontend`) listed with a Up status.
+    You can find this by navigating to your Azure Container Registry in the Azure portal, selecting "Access keys" under "Settings", and locating the "Login server" value. Add this value as the `ACR_LOGIN_SERVER` secret.
 
-## 🌐 Accessing the Application
-Once all services are up:
+## 3. Triggering the CI Pipeline
 
-- Frontend Application: http://localhost:3000
+The CI pipeline is configured to trigger automatically in the following scenarios:
 
-- Product Service API (Swagger UI): http://localhost:8000/docs
+- On `push` to the `main` branch: Any code changes merged into the `main` branch will start the CI workflow.
 
-- Order Service API (Swagger UI): http://localhost:8001/docs
+- On changes to `backend/\*\*` paths: The pipeline is optimized to run only when relevant backend code or the workflow file itself changes.
 
-- Customer Service API (Swagger UI): http://localhost:8002/docs
+- Manually via `workflow_dispatch`: You can trigger the workflow manually from the GitHub Actions tab in your repository. Go to the "Actions" tab, select "Backend CI - Test, Build and Push Images to ACR" from the workflows list, and click "Run workflow".
 
-- RabbitMQ Management UI: http://localhost:15672 (Login with guest/guest) You can observe message queues and exchanges here.
+## 4. Verifying CI Pipeline Execution
 
+After triggering the pipeline, you can monitor its progress and results:
 
-## 🧹 Cleanup
-To stop and remove all Docker containers, networks, and volumes created by Docker Compose (this will delete your database data, ensuring a clean slate for the next run):
+1. Navigate to the Actions tab: In your GitHub repository, click on the "Actions" tab.
 
-```bash
-docker compose down --volumes
-```
+2. Select the "Backend CI - Test, Build and Push Images to ACR" workflow: You will see a list of workflow runs. Click on the latest run.
 
-This is useful for a completely fresh start or when you're done with the example.
+3. Review job progress: You can see the `test_and_lint_backends` and `build_and_push_images` jobs executing.
+
+4. Inspect logs: Click on any step within a job to view its detailed logs, including test results, linting output, and Docker build/push messages.
+
+5. Successful completion: A green checkmark next to the workflow run indicates all jobs passed successfully, meaning your code is tested, linted, and images are pushed to ACR.
