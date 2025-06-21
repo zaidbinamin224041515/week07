@@ -21,6 +21,9 @@ env:
   # ACR Login Server (e.g., myregistry.azurecr.io)
   # This needs to be set as a GitHub Repository Secret
   ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  # Dynamically generate image tags based on Git SHA and GitHub Run ID
+  # This provides unique, traceable tags for each image build
+  IMAGE_TAG: ${{ github.sha }}-${{ github.run_id }}
 
 jobs:
   # Job 1: Run tests and linting for all backend services
@@ -155,20 +158,20 @@ jobs:
     # Build and Push Docker image for Product Service
     - name: Build and Push Product Service Image
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:latest ./backend/product_service/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:latest
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }} ./backend/product_service/
+        docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ env.IMAGE_TAG }}
 
     # Build and Push Docker image for Order Service
     - name: Build and Push Order Service Image
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:latest ./backend/order_service/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:latest
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }} ./backend/order_service/
+        docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ env.IMAGE_TAG }}
 
     # Build and Push Docker image for Customer Service
     - name: Build and Push Customer Service Image
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/customer-service:latest ./backend/customer_service/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/customer-service:latest
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }} ./backend/customer_service/
+        docker push ${{ env.ACR_LOGIN_SERVER }}/customer-service:${{ env.IMAGE_TAG }}
 
     # Logout from Azure for security (runs even if image push fails)
     - name: Logout from Azure
