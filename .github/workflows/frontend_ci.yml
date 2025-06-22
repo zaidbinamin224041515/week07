@@ -45,7 +45,7 @@ jobs:
     - name: Build and Push Frontend Image
       run: |
         docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} ./frontend/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
+        docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:latest
 
     # Logout from Azure for security (runs even if image push fails)
     - name: Logout from Azure
