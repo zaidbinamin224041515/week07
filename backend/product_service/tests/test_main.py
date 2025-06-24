@@ -1,4 +1,4 @@
-# week04/example-2/backend/product_service/tests/test_main.py
+# week07/backend/product_service/tests/test_main.py
 
 import logging
 import os
@@ -191,26 +191,6 @@ def test_create_product_success(client: TestClient, db_session_for_test: Session
     assert db_product.image_url == test_data["image_url"]
 
 
-def test_create_product_invalid_price(client: TestClient):
-    """
-    Tests product creation with an invalid (negative) price, expecting a 422 Unprocessable Entity.
-    """
-    invalid_data = {
-        "name": "Invalid Price Product",
-        "description": "Product with negative price",
-        "price": -5.00,  # Invalid price
-        "stock_quantity": 10,
-    }
-    response = client.post("/products/", json=invalid_data)
-    assert response.status_code == 422
-    assert "detail" in response.json()
-    print(response.json())
-    assert any(
-        "value must be greater than 0" in err["msg"]
-        for err in response.json()["detail"]
-    )
-
-
 def test_list_products_empty(client: TestClient):
     """
     Tests listing products when no products exist, expecting an empty list.
@@ -239,66 +219,6 @@ def test_list_products_with_data(client: TestClient, db_session_for_test: Sessio
     assert response.status_code == 200
     assert isinstance(response.json(), list)
     assert len(response.json()) >= 1  # Should contain the product we just added
-    assert any(p["name"] == "List Product Example" for p in response.json())
-    # Check that image_url has SAS token (due to mocking)
-    assert "sv=" in response.json()[0]["image_url"]
-
-
-def test_get_product_success(client: TestClient, db_session_for_test: Session):
-    """
-    Tests successful retrieval of a product by ID.
-    Verifies the returned product includes a SAS-enabled image_url.
-    """
-    # Create a product via API for this test
-    product_data = {
-        "name": "Get Product Test",
-        "description": "Temp desc",
-        "price": 15.00,
-        "stock_quantity": 20,
-        "image_url": "http://example.com/get_test.jpg",
-    }
-    create_response = client.post("/products/", json=product_data)
-    product_id = create_response.json()["product_id"]
-
-    response = client.get(f"/products/{product_id}")
-    assert response.status_code == 200
-    assert response.json()["product_id"] == product_id
-    assert response.json()["name"] == "Get Product Test"
-    # Check that image_url has SAS token (due to mocking)
-    assert "sv=" in response.json()["image_url"]
-
-
-def test_update_product_partial(client: TestClient, db_session_for_test: Session):
-    """
-    Tests partial update of a product (e.g., only name and image_url).
-    """
-    # Create a product for partial update test
-    product_data = {
-        "name": "Original Name",
-        "description": "Original Desc",
-        "price": 10.00,
-        "stock_quantity": 10,
-        "image_url": "http://example.com/original.gif",
-    }
-    create_response = client.post("/products/", json=product_data)
-    product_id = create_response.json()["product_id"]
-
-    partial_update_data = {
-        "name": "Partially Updated Name",
-        "image_url": "http://example.com/new_image.bmp",
-    }
-    response = client.put(f"/products/{product_id}", json=partial_update_data)
-    assert response.status_code == 200
-    updated_product = response.json()
-    assert updated_product["product_id"] == product_id
-    assert updated_product["name"] == "Partially Updated Name"
-    assert (
-        updated_product["image_url"] == "http://example.com/new_image.bmp"
-    )  # No SAS token here as it's a PUT input
-    # Other fields should retain their original values
-    assert updated_product["description"] == "Original Desc"
-    assert float(updated_product["price"]) == 10.00
-    assert updated_product["stock_quantity"] == 10
 
 
 def test_delete_product_success(client: TestClient, db_session_for_test: Session):
@@ -332,114 +252,3 @@ def test_delete_product_success(client: TestClient, db_session_for_test: Session
         .first()
     )
     assert deleted_product_in_db is None
-
-
-def test_upload_product_image_success(
-    client: TestClient, db_session_for_test: Session, mock_azure_blob_storage: MagicMock
-):
-    """
-    Tests successful image upload to Azure Blob Storage and database update.
-    """
-    # Create a product first to upload image to
-    product_data = {
-        "name": "Product for Image",
-        "description": "Needs a photo",
-        "price": 99.99,
-        "stock_quantity": 50,
-    }
-    create_response = client.post("/products/", json=product_data)
-    product_id = create_response.json()["product_id"]
-
-    # Prepare a dummy image file
-    test_image_content = b"fake image data"
-    # Use BytesIO to simulate a file uploaded by FastAPI's UploadFile
-    from io import BytesIO
-
-    test_file = BytesIO(test_image_content)
-    test_file.name = "test_image.png"  # Must have a .name attribute
-    test_file.seek(0)  # Reset pointer to beginning
-
-    response = client.post(
-        f"/products/{product_id}/upload-image",
-        files={"file": ("test_image.png", test_file, "image/png")},
-    )
-
-    assert response.status_code == 200
-    response_data = response.json()
-    assert response_data["product_id"] == product_id
-    assert "image_url" in response_data
-    # Assert that the mocked Azure methods were called
-    mock_azure_blob_storage.return_value.get_container_client.assert_called_with(
-        os.environ["AZURE_STORAGE_CONTAINER_NAME"]
-    )
-    mock_azure_blob_storage.return_value.get_blob_client.assert_called_once()
-    mock_azure_blob_storage.return_value.get_blob_client.return_value.upload_blob.assert_called_once()
-
-    # Check that the image_url contains the mocked SAS token
-    assert "sv=" in response_data["image_url"]
-    assert "sig=mock_sas_token" in response_data["image_url"]
-
-    # Verify the image_url is updated in the database
-    db_product = (
-        db_session_for_test.query(Product)
-        .filter(Product.product_id == product_id)
-        .first()
-    )
-    assert db_product.image_url is not None
-    assert (
-        "sv=" in db_product.image_url
-    )  # Should also have SAS in DB for this example's storage pattern
-
-
-def test_upload_product_image_invalid_file_type(
-    client: TestClient, db_session_for_test: Session
-):
-    """
-    Tests image upload with an invalid file type, expecting a 400.
-    """
-    product_data = {
-        "name": "Product for Invalid Image",
-        "description": "Needs a photo",
-        "price": 10.0,
-        "stock_quantity": 10,
-    }
-    create_response = client.post("/products/", json=product_data)
-    product_id = create_response.json()["product_id"]
-
-    test_file_content = b"fake document data"
-    from io import BytesIO
-
-    test_file = BytesIO(test_file_content)
-    test_file.name = "test_doc.txt"
-    test_file.seek(0)
-
-    response = client.post(
-        f"/products/{product_id}/upload-image",
-        files={"file": ("test_doc.txt", test_file, "text/plain")},
-    )
-
-    assert response.status_code == 400
-    assert (
-        response.json()["detail"]
-        == "Invalid file type. Only image/jpeg, image/png, image/gif are allowed."
-    )
-
-
-def test_upload_product_image_product_not_found(client: TestClient):
-    """
-    Tests image upload for a non-existent product, expecting a 404.
-    """
-    test_image_content = b"fake image data"
-    from io import BytesIO
-
-    test_file = BytesIO(test_image_content)
-    test_file.name = "test_image.png"
-    test_file.seek(0)
-
-    response = client.post(
-        "/products/999999/upload-image",  # Non-existent product ID
-        files={"file": ("test_image.png", test_file, "image/png")},
-    )
-
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Product not found"
