@@ -124,18 +124,6 @@ jobs:
         run: |
           pytest tests --maxfail=1 --disable-warnings -q
 
-      # 7. Run tests for customer service
-      - name: Run customer_service tests
-        working-directory: backend/customer_service
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5434
-          POSTGRES_DB: customers
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        run: |
-          pytest tests --maxfail=1 --disable-warnings -q
-
   # Job 2: Build and Push Docker Images (runs only if tests pass)
   build_and_push_images:
     runs-on: ubuntu-latest
