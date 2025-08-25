@@ -19,7 +19,7 @@ Once forked, clone _your forked repository_ to your local machine:
 
 ```bash
 git clone [https://github.com/your-username/your-forked-repository.git](https://github.com/your-username/your-forked-repository.git) # Replace with your actual forked repo URL
-cd your-forked-repository/week07/example-01 # Adjust path as needed for Week 07 Example 01
+cd your-forked-repository/week07 # Adjust path as needed for Week 07
 ```
 
 ### 2. Create GitHub Repository Secrets
