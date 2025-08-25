@@ -1,4 +1,4 @@
-# Week 07 Example 01: Continuous Integration (CI) Pipeline for Backend Microservices
+# Week 07: Continuous Integration (CI) Pipeline for Backend Microservices
 
 ## Continuous Integration Explained
 
