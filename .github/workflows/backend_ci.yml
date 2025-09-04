@@ -98,16 +98,25 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # Normalize the registry string in case the secret has trailing newline/space
+      - name: Normalize registry value
+        run: |
+          REG="${{ env.ACR_LOGIN_SERVER }}"
+          # strip CR, LF, and spaces
+          REG="$(printf '%s' "$REG" | tr -d '\r\n ' )"
+          echo "CLEAN_REG=$REG" >> "$GITHUB_ENV"
+          echo "Using registry: $REG"  # masked in logs
+
       - name: Docker login to ACR
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.ACR_LOGIN_SERVER }}
+          registry: ${{ env.CLEAN_REG }}
           username: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
           password: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
 
       - name: Build & push product_service
         run: |
-          IMG="${{ env.ACR_LOGIN_SERVER }}/product_service"
+          IMG="${{ env.CLEAN_REG }}/product_service"
           echo "Building $IMG"
           docker build -t "$IMG:latest" ./backend/product_service/
           docker tag "$IMG:latest" "$IMG:${{ env.IMAGE_TAG }}"
@@ -116,7 +125,7 @@ jobs:
 
       - name: Build & push order_service
         run: |
-          IMG="${{ env.ACR_LOGIN_SERVER }}/order_service"
+          IMG="${{ env.CLEAN_REG }}/order_service"
           echo "Building $IMG"
           docker build -t "$IMG:latest" ./backend/order_service/
           docker tag "$IMG:latest" "$IMG:${{ env.IMAGE_TAG }}"
